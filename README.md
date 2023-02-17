@@ -179,56 +179,7 @@ exports.uploadFile = function (context, req) {
 
 ### Uploading multiple files
 
-When uploading multiple files you can make use of the `fieldName` property to keep track of an identifier of the uploaded files. The fieldName is equal to the passed `name` property of the file in the `multipart/form-data` request. This can be modified to contain an identifier (like a UUID), for example using the `formDataAppendFile` in the commonly used [`apollo-upload-link`](https://github.com/jaydenseric/apollo-upload-client#function-formdataappendfile) library.
-
-GraphQL schema:
-
-```graphql
-scalar Upload
-input DocumentUploadInput {
-  docType: String!
-  files: [Upload!]
-}
-
-type SuccessResult {
-  success: Boolean!
-  message: String
-}
-type Mutations {
-  uploadDocuments(docs: [DocumentUploadInput!]!): SuccessResult
-}
-```
-
-GraphQL resolvers:
-
-```js
-const { S3 } = require("aws-sdk");
-
-const resolvers = {
-  Upload: require("graphql-upload-minimal").GraphQLUpload,
-
-  Mutations: {
-    async uploadDocuments(root, { docs }, ctx) {
-      try {
-        const s3 = new S3({ apiVersion: "2006-03-01", params: { Bucket: "my-bucket" } });
-
-        for (const doc of docs) {
-          // fieldName contains the "name" property from the multipart/form-data request.
-          // Use it to pass an identifier in order to store the file in a consistent manner.
-          const { createReadStream, filename, fieldName /*, mimetype, encoding */ } = await doc.file;
-          const Key = `${ctx.user.id}/${doc.docType}-${fieldName}`;
-          await s3.upload({ Key, Body: createReadStream() }).promise();
-        }
-
-        return { success: true };
-      } catch (error) {
-        console.log("File upload failed", error);
-        return { success: false, message: error.message };
-      }
-    },
-  },
-};
-```
+When uploading multiple files you can make use of the `fieldName` property to keep track of an identifier of the uploaded files. The `fieldName` is equal to the passed `name` property of the file in the `multipart/form-data` request. This can be modified to contain an identifier (like a UUID), for example using the `formDataAppendFile` in the commonly used [`apollo-upload-link`](https://github.com/jaydenseric/apollo-upload-client#function-formdataappendfile) library.
 
 ## Tips
 
