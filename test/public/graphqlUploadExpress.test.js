@@ -133,6 +133,7 @@ describe("graphqlUploadExpress", () => {
 
             deepStrictEqual(expressError, error);
             strictEqual(responseStatusCode, error.status);
+            strictEqual(responseStatusCode, error.statusCode);
         } finally {
             close();
         }
